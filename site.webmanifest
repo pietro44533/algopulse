@@ -1,0 +1,39 @@
+{
+  "name": "Segnale Tecnico",
+  "short_name": "Segnale",
+  "description": "Dashboard per consultare segnali tecnici e notifiche in tempo reale.",
+  "lang": "it-IT",
+  "version": "1.1",
+  "start_url": "/dashboard.html",
+  "background_color": "#f7f7f7",
+  "theme_color": "#1976d2",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/icon_192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon_256x256.png",
+      "sizes": "256x256",
+      "type": "image/png"
+    },
+    {
+      "src": "/icon_512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "scope": "/",
+  "shortcuts": [
+    {
+      "name": "Nuovo Segnale",
+      "short_name": "Nuovo",
+      "description": "Aggiungi un nuovo segnale dalla dashboard",
+      "url": "/dashboard.html#add-signal"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+[
+  {
+    "filter": "goal ht",
+    "attiva": true
+  },
+  {
+    "filter": "prova",
+    "attiva": true
+  }
+]
