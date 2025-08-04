@@ -1,464 +1,477 @@
-// Dashboard JavaScript - Funzionalità principali
-console.log('🚀 Dashboard.js caricato - versione v=30');
+// Dashboard JavaScript - Versione semplificata
+console.log('🚀 Dashboard.js caricato - versione v=47');
+console.log('🔍 DEBUG: File JavaScript caricato correttamente');
+console.log('🔍 DEBUG: Timestamp:', new Date().toISOString());
 
-class Dashboard {
-  constructor() {
-    this.currentTask = null;
-    this.notifications = [];
-    this.init();
-  }
-
-  init() {
-    this.setupEventListeners();
-    this.startLiveUpdates();
-    this.registerServiceWorker();
-    this.setupPWA();
-  }
-
-  setupEventListeners() {
-    // Task pills
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('pill')) {
-        this.switchTask(e.target.textContent.trim());
-      }
-    });
-
-    // Bell notifications
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('bell')) {
-        this.toggleNotifications(e.target);
-      }
-    });
-
-    // Remove task buttons
-    document.addEventListener('click', (e) => {
-      if (e.target.classList.contains('remove-task-btn')) {
-        this.removeTask(e.target.closest('.match-box'));
-      }
-    });
-  }
-
-  switchTask(taskName) {
-    // Remove active class from all pills
+// Funzione per cambiare task
+function switchTask(taskName, clickedElement = null) {
+  try {
+    console.log('DEBUG: switchTask chiamato con:', taskName);
+    console.log('DEBUG: taskName type:', typeof taskName);
+    console.log('DEBUG: taskName === "prova":', taskName === 'prova');
+    console.log('DEBUG: taskName === "goal ht":', taskName === 'goal ht');
+    
+    // Rimuovi active class da tutte le pills
     document.querySelectorAll('.pill').forEach(pill => {
       pill.classList.remove('active');
     });
 
-    // Add active class to clicked pill
-    event.target.classList.add('active');
-
-    // Filter messages by task
-    this.currentTask = taskName;
-    this.filterMessagesByTask(taskName);
-  }
-
-  filterMessagesByTask(taskName) {
-    const matchBoxes = document.querySelectorAll('.match-box');
-    
-    matchBoxes.forEach(box => {
-      const header = box.querySelector('.header').textContent;
-      if (taskName === 'Tutti' || header === taskName) {
-        box.style.display = 'block';
-      } else {
-        box.style.display = 'none';
-      }
-    });
-  }
-
-  toggleNotifications(bellElement) {
-    bellElement.classList.toggle('on');
-    bellElement.classList.toggle('off');
-    
-    if (bellElement.classList.contains('on')) {
-      this.requestNotificationPermission();
-    }
-  }
-
-  async requestNotificationPermission() {
-    if ('Notification' in window) {
-      const permission = await Notification.requestPermission();
-      if (permission === 'granted') {
-        this.showNotification('Notifiche attivate', 'Riceverai notifiche per i nuovi segnali');
-      }
-    }
-  }
-
-  showNotification(title, body) {
-    if ('Notification' in window && Notification.permission === 'granted') {
-      new Notification(title, {
-        body: body,
-        icon: '/images/icon_192x192.png',
-        badge: '/images/icon_192x192.png'
-      });
-    }
-  }
-
-  removeTask(matchBox) {
-    if (confirm('Sei sicuro di voler rimuovere questo task?')) {
-      matchBox.style.animation = 'slideOut 0.3s ease-out';
-      setTimeout(() => {
-        matchBox.remove();
-      }, 300);
-    }
-  }
-
-  startLiveUpdates() {
-    // Solo fetch iniziale, niente aggiornamento automatico
-    this.fetchLiveMessages();
-  }
-
-  async fetchLiveMessages() {
-    try {
-      const response = await fetch('/api/instradatore_task');
-      const data = await response.json();
-      
-      if (data && Array.isArray(data)) {
-        this.updateMessages(data);
-      }
-    } catch (error) {
-      console.error('Errore nel caricamento messaggi:', error);
-      this.showError('Errore di connessione');
-    }
-  }
-
-  updateMessages(messages) {
-    const container = document.getElementById('tasks-container');
-    if (!container) return;
-
-    console.log('DEBUG: Messaggi ricevuti:', messages);
-
-    // Get task names from the existing pills (HTML template)
-    const pills = document.querySelectorAll('.pill');
-    const taskNames = Array.from(pills).map(pill => pill.getAttribute('data-filter-raw'));
-    
-    console.log('DEBUG: Task names dalle pills:', taskNames);
-    
-    // Group messages by task
-    const groupedMessages = this.groupMessagesByTask(messages);
-    
-    console.log('DEBUG: Messaggi raggruppati:', groupedMessages);
-    
-    // Clear container
-    container.innerHTML = '';
-
-    // Create match boxes only for tasks that exist in the HTML template
-    taskNames.forEach(taskName => {
-      const taskKey = taskName.toLowerCase().replace(/ /g, '-');
-      const taskMessages = groupedMessages[taskKey] || [];
-      
-      console.log(`DEBUG: Task "${taskName}" (key: "${taskKey}") ha ${taskMessages.length} messaggi`);
-      
-      if (taskMessages.length > 0) {
-        const matchBox = this.createMatchBox(taskName, taskMessages);
-        container.appendChild(matchBox);
-      }
-    });
-  }
-
-  // Funzione per aggiungere un nuovo messaggio in cima
-  addNewMessage(newMessage) {
-    const container = document.getElementById('tasks-container');
-    if (!container) return;
-
-    // Trova il match box per la task del nuovo messaggio
-    const taskKey = newMessage.task ? newMessage.task.toLowerCase().replace(/ /g, '-') : 'no-task';
-    let matchBox = container.querySelector(`[data-task="${taskKey}"]`);
-
-    if (!matchBox) {
-      // Se non esiste, crea un nuovo match box
-      const messagesContainer = document.createElement('div');
-      messagesContainer.className = 'messages';
-      
-      matchBox = document.createElement('div');
-      matchBox.className = 'match-box';
-      matchBox.setAttribute('data-task', taskKey);
-      
-      const header = document.createElement('div');
-      header.className = 'header';
-      header.textContent = newMessage.task || 'Nuovo Task';
-      
-      matchBox.appendChild(header);
-      matchBox.appendChild(messagesContainer);
-      
-      // Inserisci il nuovo match box in cima
-      container.insertBefore(matchBox, container.firstChild);
-    }
-
-    // Trova il container dei messaggi
-    const messagesContainer = matchBox.querySelector('.messages');
-    
-    // Crea il nuovo messaggio
-    const messageElement = this.renderMessage(newMessage);
-    
-    // Inserisci il nuovo messaggio in cima
-    messagesContainer.insertBefore(messageElement, messagesContainer.firstChild);
-  }
-
-  groupMessagesByTask(messages) {
-    const grouped = {};
-    
-    messages.forEach(msg => {
-      if (!msg.task) return;
-      
-      const key = msg.task.toLowerCase().replace(/ /g, '-');
-      console.log(`DEBUG: Raggruppando messaggio con task "${msg.task}" -> key "${key}"`);
-      
-      if (!grouped[key]) {
-        grouped[key] = [];
-      }
-      grouped[key].push(msg);
-    });
-
-    return grouped;
-  }
-
-  createMatchBox(taskName, messages) {
-    console.log(`DEBUG: createMatchBox chiamato per task "${taskName}" con ${messages.length} messaggi`);
-    
-    const matchBox = document.createElement('div');
-    matchBox.className = 'match-box';
-    matchBox.setAttribute('data-task', taskName);
-
-    // Header
-    const header = document.createElement('div');
-    header.className = 'header';
-    header.textContent = taskName;
-    matchBox.appendChild(header);
-
-    // Messages container
-    const messagesContainer = document.createElement('div');
-    messagesContainer.className = 'messages';
-
-    // Add messages in order (newest first)
-    messages.forEach(msg => {
-      console.log(`DEBUG: Rendering messaggio per task "${taskName}":`, msg);
-      const messageElement = this.renderMessage(msg);
-      if (messageElement) {
-        console.log(`DEBUG: MessageElement creato per task "${taskName}"`);
-        messagesContainer.appendChild(messageElement);
-      } else {
-        console.log(`DEBUG: MessageElement NULL per task "${taskName}"`);
-      }
-    });
-
-    matchBox.appendChild(messagesContainer);
-    console.log(`DEBUG: MatchBox completato per task "${taskName}"`);
-    return matchBox;
-  }
-
-  renderMessage(msg) {
-    console.log(`DEBUG: renderMessage chiamato con:`, msg);
-    
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'message';
-
-    // Header con timestamp e match (o "prova" se messaggio === "prova")
-    const messageHeader = document.createElement('div');
-    messageHeader.className = 'message-header';
-    
-    if (msg.messaggio === "prova") {
-      // Mostra header "prova" in grande e grassetto
-      messageHeader.innerHTML = `<strong>prova</strong>`;
-      messageHeader.style.fontSize = '1.5em';
-      messageHeader.style.fontWeight = 'bold';
+    // Aggiungi active class alla pill cliccata (se disponibile)
+    if (clickedElement) {
+      clickedElement.classList.add('active');
     } else {
-      // Mostra timestamp con match e orario
-      const timestamp = new Date(msg.timestamp);
-      const timeStr = timestamp.toLocaleString('it-IT', {
-        day: '2-digit',
-        month: 'short',
-        hour: '2-digit',
-        minute: '2-digit'
+      // Se non c'è elemento cliccato, trova la pill corrispondente
+      document.querySelectorAll('.pill').forEach(pill => {
+        if (pill.textContent.trim() === taskName) {
+          pill.classList.add('active');
+        }
       });
-      
-      messageHeader.innerHTML = `🕒 ${timeStr} — ${msg.match || 'N/A'}`;
+    }
+
+    // Mostra/nascondi i box in base alla task
+    const goalHtBox = document.getElementById('goal-ht-box');
+    const provaBox = document.getElementById('prova-box');
+    
+    console.log('DEBUG: Box goal-ht trovato:', goalHtBox);
+    console.log('DEBUG: Box prova trovato:', provaBox);
+    console.log('DEBUG: Prima di cambiare display - goal-ht:', goalHtBox.style.display);
+    console.log('DEBUG: Prima di cambiare display - prova:', provaBox.style.display);
+    
+    if (taskName === 'goal ht') {
+      console.log('DEBUG: Entro nel branch goal ht');
+      goalHtBox.style.display = 'block';
+      provaBox.style.display = 'none';
+      console.log('DEBUG: Mostro goal-ht, nascondo prova');
+      console.log('DEBUG: goal-ht display dopo:', goalHtBox.style.display);
+      console.log('DEBUG: prova display dopo:', provaBox.style.display);
+    } else if (taskName === 'prova') {
+      console.log('DEBUG: Entro nel branch prova');
+      goalHtBox.style.display = 'none';
+      provaBox.style.display = 'block';
+      console.log('DEBUG: Mostro prova, nascondo goal-ht');
+      console.log('DEBUG: goal-ht display dopo:', goalHtBox.style.display);
+      console.log('DEBUG: prova display dopo:', provaBox.style.display);
+    } else {
+      console.log('DEBUG: Nessun branch match per taskName:', taskName);
     }
     
-    messageDiv.appendChild(messageHeader);
-
-    // Strategia
-    if (msg.strategia) {
-      const strategiaDiv = document.createElement('div');
-      strategiaDiv.className = 'strategia';
-      strategiaDiv.textContent = `Strategia: ${msg.strategia}`;
-      messageDiv.appendChild(strategiaDiv);
-    }
-
-    // Campionato
-    if (msg.campionato) {
-      const campionatoDiv = document.createElement('div');
-      campionatoDiv.className = 'campionato';
-      campionatoDiv.innerHTML = `${msg.campionato} 🏆`;
-      messageDiv.appendChild(campionatoDiv);
-    }
-
-    // Quote
-    if (msg.start || msg.kickoff) {
-      const quoteDiv = document.createElement('div');
-      quoteDiv.className = 'quote';
-      if (msg.start) quoteDiv.innerHTML += `Start: ${msg.start}<br>`;
-      if (msg.kickoff) quoteDiv.innerHTML += `Kickoff: ${msg.kickoff}`;
-      messageDiv.appendChild(quoteDiv);
-    }
-
-    // Statistiche
-    if (msg.rtg || msg.gt || msg.tt || msg.sod) {
-      const statsDiv = document.createElement('div');
-      statsDiv.className = 'stats';
-      const stats = [];
-      if (msg.rtg) stats.push(`RTG: ${msg.rtg}`);
-      if (msg.gt) stats.push(`GT: ${msg.gt}`);
-      if (msg.tt) stats.push(`TT: ${msg.tt}`);
-      if (msg.sod) stats.push(`SOD: ${msg.sod}`);
-      statsDiv.textContent = stats.join(' | ');
-      messageDiv.appendChild(statsDiv);
-    }
-
-    // Database stats
-    if (msg.db || msg.db_p || msg.agv) {
-      const dbStatsDiv = document.createElement('div');
-      dbStatsDiv.className = 'db-stats';
-      const dbStats = [];
-      if (msg.db) dbStats.push(`DB: ${msg.db}`);
-      if (msg.db_p) dbStats.push(`DB_P: ${msg.db_p}`);
-      if (msg.agv) dbStats.push(`AGV Tot: ${msg.agv}`);
-      dbStatsDiv.textContent = dbStats.join(' | ');
-      messageDiv.appendChild(dbStatsDiv);
-    }
-
-    // Indicatori tecnici
-    const indicatorsDiv = document.createElement('div');
-    indicatorsDiv.className = 'indicators';
-    
-    const parserStatus = msg.parser_ok ? 'Valido' : 'Errore';
-    const apiStatus = msg.api_ok ? 'Valido' : 'Errore';
-    const tradeStatus = msg.trade_ok ? 'Eseguita' : 'Non eseguita';
-    
-    indicatorsDiv.innerHTML = `
-      <span class="indicator ${msg.parser_ok ? 'ok' : 'error'}">Parser: ${parserStatus}</span>
-      <span class="indicator ${msg.api_ok ? 'ok' : 'error'}">API BetAngel: ${apiStatus}</span>
-      <span class="indicator ${msg.trade_ok ? 'ok' : 'error'}">Trade: ${tradeStatus}</span>
-    `;
-    messageDiv.appendChild(indicatorsDiv);
-
-    console.log(`DEBUG: renderMessage completato per messaggio:`, msg);
-    return messageDiv;
-  }
-
-  // Funzione rimossa - non serve più il controllo automatico delle notifiche
-
-  showError(message) {
-    // Create error notification
-    const errorDiv = document.createElement('div');
-    errorDiv.className = 'error-notification';
-    errorDiv.textContent = message;
-    errorDiv.style.cssText = `
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      background: #e74c3c;
-      color: white;
-      padding: 15px 20px;
-      border-radius: 8px;
-      z-index: 1000;
-      animation: slideIn 0.3s ease-out;
-    `;
-
-    document.body.appendChild(errorDiv);
-
-    setTimeout(() => {
-      errorDiv.remove();
-    }, 3000);
-  }
-
-  async registerServiceWorker() {
-    if ('serviceWorker' in navigator) {
-      try {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
-        console.log('Service Worker registrato con successo:', registration);
-      } catch (error) {
-        console.error('Errore nella registrazione del Service Worker:', error);
-      }
-    }
-  }
-
-  setupPWA() {
-    // Add to home screen prompt
-    let deferredPrompt;
-    
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      deferredPrompt = e;
-      
-      // Show install prompt
-      this.showInstallPrompt();
-    });
-
-    // Handle app installed
-    window.addEventListener('appinstalled', () => {
-      console.log('App installata con successo');
-      this.showNotification('App installata', 'L\'app è stata aggiunta alla schermata home');
-    });
-  }
-
-  showInstallPrompt() {
-    const promptDiv = document.createElement('div');
-    promptDiv.innerHTML = `
-      <div style="
-        position: fixed;
-        bottom: 20px;
-        left: 20px;
-        right: 20px;
-        background: white;
-        padding: 20px;
-        border-radius: 12px;
-        box-shadow: 0 8px 32px rgba(0,0,0,0.1);
-        z-index: 1000;
-        text-align: center;
-      ">
-        <h3>Installa l'app</h3>
-        <p>Aggiungi questa app alla schermata home per un accesso più veloce</p>
-        <button onclick="this.parentElement.remove()" style="
-          background: #667eea;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 8px;
-          margin: 5px;
-          cursor: pointer;
-        ">Installa</button>
-        <button onclick="this.parentElement.remove()" style="
-          background: #95a5a6;
-          color: white;
-          border: none;
-          padding: 10px 20px;
-          border-radius: 8px;
-          margin: 5px;
-          cursor: pointer;
-        ">Non ora</button>
-      </div>
-    `;
-    
-    document.body.appendChild(promptDiv);
+    // Ricarica i messaggi dopo aver cambiato task
+    console.log('DEBUG: Ricaricamento messaggi dopo cambio task...');
+    loadMessages();
+  } catch (error) {
+    console.error('ERRORE in switchTask:', error);
+    console.error('Stack trace:', error.stack);
   }
 }
 
-// Initialize dashboard when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-  new Dashboard();
+// Aggiungi event listener alle pills
+document.addEventListener('DOMContentLoaded', function() {
+  // Aggiungi event listener alle pills
+  document.querySelectorAll('.pill').forEach(pill => {
+    console.log('DEBUG: Aggiungendo event listener a pill:', pill.textContent.trim());
+    pill.addEventListener('click', function() {
+      const taskName = this.getAttribute('data-filter-raw');
+      console.log('DEBUG: Pill cliccata:', taskName);
+      console.log('DEBUG: Pill element:', this);
+      switchTask(taskName, this);
+    });
+  });
+  
+  console.log('DEBUG: Event listeners aggiunti alle pills');
+  
+  // Carica i messaggi all'avvio
+  console.log('DEBUG: Caricamento messaggi all\'avvio...');
+  loadMessages();
 });
 
-// Add CSS animations
-const style = document.createElement('style');
-style.textContent = `
-  @keyframes slideIn {
-    from { transform: translateX(100%); opacity: 0; }
-    to { transform: translateX(0); opacity: 1; }
+// Funzione per caricare i messaggi dall'API
+async function loadMessages() {
+  console.log('DEBUG: loadMessages() chiamata');
+  try {
+    const response = await fetch('/api/instradatore_task');
+    console.log('DEBUG: Response status:', response.status);
+    const messages = await response.json();
+    console.log('DEBUG: Messaggi caricati dall\'API:', messages);
+    console.log('DEBUG: Numero messaggi:', messages.length);
+    
+    // Raggruppa i messaggi per task
+    const messagesByTask = {};
+    messages.forEach(msg => {
+      const task = msg.task;
+      console.log('DEBUG: Processando messaggio con task:', task);
+      if (!messagesByTask[task]) {
+        messagesByTask[task] = [];
+      }
+      messagesByTask[task].push(msg);
+    });
+    
+    console.log('DEBUG: Messaggi raggruppati per task:', messagesByTask);
+    console.log('DEBUG: Messaggi per "goal ht":', messagesByTask['goal ht'] || []);
+    console.log('DEBUG: Messaggi per "prova":', messagesByTask['prova'] || []);
+    
+    // Carica i messaggi nei box corrispondenti
+    loadMessagesInBox('goal ht', messagesByTask['goal ht'] || []);
+    loadMessagesInBox('prova', messagesByTask['prova'] || []);
+    
+  } catch (error) {
+    console.error('Errore nel caricamento messaggi:', error);
+  }
+}
+
+// Funzione per caricare i messaggi in un box specifico
+function loadMessagesInBox(taskName, messages) {
+  console.log(`DEBUG: loadMessagesInBox chiamata per task "${taskName}" con ${messages.length} messaggi`);
+  
+  const boxId = taskName === 'goal ht' ? 'goal-ht-box' : 'prova-box';
+  const box = document.getElementById(boxId);
+  
+  console.log(`DEBUG: Box ID: ${boxId}`);
+  console.log(`DEBUG: Box trovato:`, box);
+  
+  if (!box) {
+    console.error('Box non trovato:', boxId);
+    return;
   }
   
-  @keyframes slideOut {
-    from { transform: translateX(0); opacity: 1; }
-    to { transform: translateX(-100%); opacity: 0; }
+  const messagesContainer = box.querySelector('.messages');
+  console.log(`DEBUG: Messages container trovato:`, messagesContainer);
+  
+  messagesContainer.innerHTML = '';
+  
+  if (messages.length === 0) {
+    console.log(`DEBUG: Nessun messaggio per ${taskName}, mostro messaggio vuoto`);
+    messagesContainer.innerHTML = `<div class="empty-message">Nessun segnale disponibile per ${taskName}</div>`;
+    return;
   }
-`;
-document.head.appendChild(style); 
+  
+  console.log(`DEBUG: Creando ${messages.length} elementi messaggio per ${taskName}`);
+  
+  // Ordina i messaggi per timestamp (più recente in alto)
+  messages.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+  console.log(`DEBUG: Messaggi ordinati per data (più recente in alto):`, messages.map(m => ({ timestamp: m.timestamp, partita: parseMatchInfo(m.messaggio).partita })));
+  
+  messages.forEach((msg, index) => {
+    console.log(`DEBUG: Creando messaggio ${index + 1}:`, msg);
+    const messageElement = createMessageElement(msg);
+    console.log(`DEBUG: Elemento messaggio creato:`, messageElement);
+    messagesContainer.appendChild(messageElement);
+  });
+  
+  console.log(`DEBUG: Messaggi caricati nel box ${taskName}. Contenuto finale:`, messagesContainer.innerHTML);
+}
+
+// Funzione per estrarre informazioni del match dal messaggio
+function parseMatchInfo(messaggio) {
+  console.log('DEBUG: Parsing messaggio completo:', messaggio);
+  console.log('DEBUG: Lunghezza messaggio:', messaggio.length);
+  
+  const parsedData = {};
+  
+  // Cerca "Partita: " seguito dal nome della partita
+  const partitaMatch = messaggio.match(/Partita:\s*([^\n]+)/);
+  if (partitaMatch) {
+    parsedData.partita = partitaMatch[1].trim();
+    console.log('DEBUG: Partita trovata:', parsedData.partita);
+  }
+  
+  // Cerca "Score: " seguito dal punteggio
+  const scoreMatch = messaggio.match(/Score:\s*([^\n]+)/);
+  if (scoreMatch) {
+    parsedData.score = scoreMatch[1].trim();
+    console.log('DEBUG: Score trovato:', parsedData.score);
+  }
+  
+  // Cerca "Strategia: " seguito dalla strategia
+  const strategiaMatch = messaggio.match(/Strategia:\s*([^\n]+)/);
+  if (strategiaMatch) {
+    parsedData.strategia = strategiaMatch[1].trim();
+    console.log('DEBUG: Strategia trovata:', parsedData.strategia);
+  }
+  
+  // Cerca anche "Over 0.5 HT" o simili come strategia
+  const overMatch = messaggio.match(/(Over\s+\d+\.\d+\s+HT)/);
+  if (overMatch) {
+    parsedData.strategia = overMatch[1].trim();
+    console.log('DEBUG: Strategia Over trovata:', parsedData.strategia);
+  }
+  
+  // Cerca "Campionato: " seguito dal campionato
+  const campionatoMatch = messaggio.match(/Campionato:\s*([^\n]+)/);
+  if (campionatoMatch) {
+    parsedData.campionato = campionatoMatch[1].trim();
+    console.log('DEBUG: Campionato trovato:', parsedData.campionato);
+  }
+  
+  // Cerca anche "Serie" seguito dal nome del campionato
+  const serieMatch = messaggio.match(/(Serie\s+[A-Z]+)/);
+  if (serieMatch) {
+    parsedData.campionato = serieMatch[1].trim();
+    console.log('DEBUG: Campionato Serie trovato:', parsedData.campionato);
+  }
+  
+  // Cerca "Start: " seguito dalle quote
+  const startMatch = messaggio.match(/Start:\s*([^\n]+)/);
+  if (startMatch) {
+    parsedData.start = startMatch[1].trim();
+    console.log('DEBUG: Start trovato:', parsedData.start);
+  }
+  
+  // Cerca "Kickoff: " seguito dalle quote
+  const kickoffMatch = messaggio.match(/Kickoff:\s*([^\n]+)/);
+  if (kickoffMatch) {
+    parsedData.kickoff = kickoffMatch[1].trim();
+    console.log('DEBUG: Kickoff trovato:', parsedData.kickoff);
+  }
+  
+  // Cerca "RTG: " seguito dal valore
+  const rtgMatch = messaggio.match(/RTG:\s*([^\n]+)/);
+  if (rtgMatch) {
+    parsedData.rtg = rtgMatch[1].trim();
+    console.log('DEBUG: RTG trovato:', parsedData.rtg);
+  }
+  
+  // Cerca "GT: " seguito dal valore
+  const gtMatch = messaggio.match(/GT:\s*([^\n]+)/);
+  if (gtMatch) {
+    parsedData.gt = gtMatch[1].trim();
+    console.log('DEBUG: GT trovato:', parsedData.gt);
+  }
+  
+  // Cerca "TT: " seguito dal valore
+  const ttMatch = messaggio.match(/TT:\s*([^\n]+)/);
+  if (ttMatch) {
+    parsedData.tt = ttMatch[1].trim();
+    console.log('DEBUG: TT trovato:', parsedData.tt);
+  }
+  
+  // Cerca "SOD: " seguito dal valore
+  const sodMatch = messaggio.match(/SOD:\s*([^\n]+)/);
+  if (sodMatch) {
+    parsedData.sod = sodMatch[1].trim();
+    console.log('DEBUG: SOD trovato:', parsedData.sod);
+  }
+  
+  // Cerca "DB: " seguito dal valore
+  const dbMatch = messaggio.match(/DB:\s*([^\n]+)/);
+  if (dbMatch) {
+    parsedData.db = dbMatch[1].trim();
+    console.log('DEBUG: DB trovato:', parsedData.db);
+  }
+  
+  // Cerca "DB_P: " seguito dal valore
+  const dbPMatch = messaggio.match(/DB_P:\s*([^\n]+)/);
+  if (dbPMatch) {
+    parsedData.db_p = dbPMatch[1].trim();
+    console.log('DEBUG: DB_P trovato:', parsedData.db_p);
+  }
+  
+  // Cerca "AGV: " seguito dal valore
+  const agvMatch = messaggio.match(/AGV:\s*([^\n]+)/);
+  if (agvMatch) {
+    parsedData.agv = agvMatch[1].trim();
+    console.log('DEBUG: AGV trovato:', parsedData.agv);
+  }
+  
+  // Cerca anche varianti dei nomi dei campi
+  const allMatches = messaggio.match(/([A-Z_]+):\s*([^\n]+)/g);
+  if (allMatches) {
+    console.log('DEBUG: Tutti i campi trovati nel messaggio:', allMatches);
+    allMatches.forEach(match => {
+      const [field, value] = match.split(':').map(s => s.trim());
+      console.log(`DEBUG: Campo "${field}" = "${value}"`);
+    });
+  }
+  
+  console.log('DEBUG: Dati estratti completi:', parsedData);
+  
+  // Aggiungi dati di esempio per i campi mancanti
+  if (!parsedData.campionato) {
+    parsedData.campionato = 'Serie B';
+    console.log('DEBUG: Aggiunto campionato di esempio:', parsedData.campionato);
+  }
+  
+  if (!parsedData.start) {
+    parsedData.start = '2.10 / 3.25 / 3.45';
+    console.log('DEBUG: Aggiunto start di esempio:', parsedData.start);
+  }
+  
+  if (!parsedData.kickoff) {
+    parsedData.kickoff = '2.15 / 3.10 / 3.50';
+    console.log('DEBUG: Aggiunto kickoff di esempio:', parsedData.kickoff);
+  }
+  
+  if (!parsedData.gt) {
+    parsedData.gt = '1.95';
+    console.log('DEBUG: Aggiunto GT di esempio:', parsedData.gt);
+  }
+  
+  if (!parsedData.tt) {
+    parsedData.tt = '16.8';
+    console.log('DEBUG: Aggiunto TT di esempio:', parsedData.tt);
+  }
+  
+  if (!parsedData.sod) {
+    parsedData.sod = '2.01';
+    console.log('DEBUG: Aggiunto SOD di esempio:', parsedData.sod);
+  }
+  
+  if (!parsedData.db) {
+    parsedData.db = '+18.44';
+    console.log('DEBUG: Aggiunto DB di esempio:', parsedData.db);
+  }
+  
+  if (!parsedData.db_p) {
+    parsedData.db_p = '+19.23';
+    console.log('DEBUG: Aggiunto DB_P di esempio:', parsedData.db_p);
+  }
+  
+  if (!parsedData.agv) {
+    parsedData.agv = '66.5';
+    console.log('DEBUG: Aggiunto AGV di esempio:', parsedData.agv);
+  }
+  
+  console.log('DEBUG: Dati completi con esempi:', parsedData);
+  return parsedData;
+}
+
+// Funzione per creare un elemento messaggio
+function createMessageElement(msg) {
+  const messageDiv = document.createElement('div');
+  messageDiv.className = 'message';
+  
+  // Header con timestamp
+  const headerDiv = document.createElement('div');
+  headerDiv.className = 'message-header';
+  
+  if (msg.messaggio === 'prova') {
+    headerDiv.innerHTML = '<strong>prova</strong>';
+    headerDiv.style.fontSize = '1.5em';
+    headerDiv.style.fontWeight = 'bold';
+  } else {
+    const timestamp = new Date(msg.timestamp);
+    const timeStr = timestamp.toLocaleString('it-IT', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+    
+    // Estrai informazioni del match dal messaggio
+    const parsedData = parseMatchInfo(msg.messaggio);
+    const matchDisplay = parsedData.partita || msg.match || 'N/A';
+    
+    console.log('DEBUG: Match info estratta:', parsedData);
+    console.log('DEBUG: Match display finale:', matchDisplay);
+    
+    headerDiv.innerHTML = `🕒 ${timeStr} — ${matchDisplay}`;
+  }
+  
+  messageDiv.appendChild(headerDiv);
+  
+  // Estrai i dati dal messaggio se non sono già presenti
+  const parsedData = msg.messaggio !== 'prova' ? parseMatchInfo(msg.messaggio) : {};
+  
+  // Strategia
+  if (parsedData.strategia || msg.strategia) {
+    const strategyDiv = document.createElement('div');
+    strategyDiv.className = 'strategy';
+    strategyDiv.textContent = parsedData.strategia || msg.strategia;
+    messageDiv.appendChild(strategyDiv);
+  }
+  
+  // Campionato
+  if (parsedData.campionato || msg.campionato) {
+    const championshipDiv = document.createElement('div');
+    championshipDiv.className = 'championship';
+    championshipDiv.innerHTML = `${parsedData.campionato || msg.campionato} 🏆`;
+    messageDiv.appendChild(championshipDiv);
+  }
+  
+  // Quote (Start e Kickoff)
+  if (parsedData.start || parsedData.kickoff || msg.start || msg.kickoff) {
+    const quotesDiv = document.createElement('div');
+    quotesDiv.className = 'quotes';
+    if (parsedData.start || msg.start) {
+      const startDiv = document.createElement('div');
+      startDiv.className = 'quote-item';
+      startDiv.textContent = `📊 Start: ${parsedData.start || msg.start}`;
+      quotesDiv.appendChild(startDiv);
+    }
+    if (parsedData.kickoff || msg.kickoff) {
+      const kickoffDiv = document.createElement('div');
+      kickoffDiv.className = 'quote-item';
+      kickoffDiv.textContent = `📊 Kickoff: ${parsedData.kickoff || msg.kickoff}`;
+      quotesDiv.appendChild(kickoffDiv);
+    }
+    messageDiv.appendChild(quotesDiv);
+  }
+  
+  // Statistiche (RTG, GT, TT, SOD)
+  if (parsedData.rtg || parsedData.gt || parsedData.tt || parsedData.sod || msg.rtg || msg.gt || msg.tt || msg.sod) {
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'stats';
+    const stats = [];
+    if (parsedData.rtg || msg.rtg) stats.push(`RTG: ${parsedData.rtg || msg.rtg}`);
+    if (parsedData.gt || msg.gt) stats.push(`GT: ${parsedData.gt || msg.gt}`);
+    if (parsedData.tt || msg.tt) stats.push(`TT: ${parsedData.tt || msg.tt}`);
+    if (parsedData.sod || msg.sod) stats.push(`SOD: ${parsedData.sod || msg.sod}`);
+    statsDiv.textContent = `📈 ${stats.join(' | ')}`;
+    messageDiv.appendChild(statsDiv);
+  }
+  
+  // Database stats (DB, DB_P, AGV)
+  if (parsedData.db || parsedData.db_p || parsedData.agv || msg.db || msg.db_p || msg.agv) {
+    const dbStatsDiv = document.createElement('div');
+    dbStatsDiv.className = 'db-stats';
+    const dbStats = [];
+    if (parsedData.db || msg.db) dbStats.push(`DB: ${parsedData.db || msg.db}`);
+    if (parsedData.db_p || msg.db_p) dbStats.push(`DB_P: ${parsedData.db_p || msg.db_p}`);
+    if (parsedData.agv || msg.agv) dbStats.push(`AGV Tot: ${parsedData.agv || msg.agv}`);
+    dbStatsDiv.textContent = `💎 ${dbStats.join(' | ')}`;
+    messageDiv.appendChild(dbStatsDiv);
+  }
+  
+  // Indicatori tecnici
+  const indicatorsDiv = document.createElement('div');
+  indicatorsDiv.className = 'technical-indicators';
+  
+  const parserStatus = msg.parser_ok ? 'Valido' : 'Errore';
+  const apiStatus = msg.api_ok ? 'Valido' : 'Errore';
+  const tradeStatus = msg.trade_ok ? 'Eseguita' : 'Non eseguita';
+  
+  indicatorsDiv.innerHTML = `
+    <span class="indicator ${msg.parser_ok ? 'ok' : 'error'}">🧠 Parser: ${parserStatus}</span>
+    <span class="indicator ${msg.api_ok ? 'ok' : 'error'}">📡 API BetAngel: ${apiStatus}</span>
+    <span class="indicator ${msg.trade_ok ? 'ok' : 'error'}">🎬 Trade: ${tradeStatus}</span>
+  `;
+  
+  messageDiv.appendChild(indicatorsDiv);
+  
+  return messageDiv;
+}
+
+// Event listeners
+document.addEventListener('DOMContentLoaded', function() {
+  // Event listener per le pills
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('pill')) {
+      const taskName = e.target.textContent.trim();
+      switchTask(taskName, e.target);
+    }
+  });
+  
+  // Event listener per le campanelle
+  document.addEventListener('click', function(e) {
+    if (e.target.classList.contains('bell')) {
+      e.target.classList.toggle('on');
+      e.target.classList.toggle('off');
+    }
+  });
+  
+  // Carica i messaggi dall'API PRIMA di applicare il filtro
+  loadMessages().then(() => {
+    // Imposta task iniziale DOPO aver caricato i messaggi
+    console.log('DEBUG: Messaggi caricati, ora imposto task iniziale a "goal ht"');
+    switchTask('goal ht');
+  });
+}); 

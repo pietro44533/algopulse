@@ -254,33 +254,8 @@ def instradatore_task():
 def get_instradatore_task():
     messaggi = carica_messaggi()
     
-    # Rimuovi solo i messaggi con task null
+    # Filtra solo i messaggi con task non null
     messaggi = [msg for msg in messaggi if msg.get("task") is not None]
-    
-    # Rimuovi tutti i messaggi esistenti per creare la struttura corretta
-    messaggi = []
-    
-    # Aggiungi il segnale Palermo vs Ascoli come nell'immagine (prima card)
-    messaggi.append({
-        "messaggio": "prova",  # Questo creerà l'header "prova" in grande
-        "strategia": "Goal nel 1º Tempo",
-        "campionato": "Serie B",
-        "start": "2.10 / 3.25 / 3.45",
-        "kickoff": "2.15 / 3.10 / 3.50",
-        "rtg": "1.4",
-        "gt": "1.95",
-        "tt": "16.8",
-        "sod": "2.01",
-        "db": "+18.44",
-        "db_p": "+19.23",
-        "agv": "66.5",
-        "parser_ok": True,
-        "api_ok": False,
-        "trade_ok": False,
-        "task": "prova",
-        "timestamp": "2025-08-03T11:56:00+02:00",
-        "match": "Palermo vs Ascoli"
-    })
     
     # Elimina definitivamente i messaggi con hideline === true
     messaggi = [msg for msg in messaggi if not msg.get("hideline", False)]
