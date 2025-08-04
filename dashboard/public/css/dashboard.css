@@ -420,3 +420,37 @@ body {
   background: #f8d7da;
   color: #721c24;
 } 
+
+.timer {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 4px;
+  font-weight: 500;
+}
+
+.score {
+  font-size: 14px;
+  color: #e74c3c;
+  margin-bottom: 4px;
+  font-weight: 600;
+}
+
+.link {
+  margin-top: 8px;
+}
+
+.match-link {
+  color: #3498db;
+  text-decoration: none;
+  font-weight: 500;
+  padding: 4px 8px;
+  border: 1px solid #3498db;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.match-link:hover {
+  background-color: #3498db;
+  color: white;
+  text-decoration: none;
+} 

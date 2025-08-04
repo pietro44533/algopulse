@@ -40,13 +40,18 @@
     "task": null
   },
   {
-    "messaggio": "⏱Timer: 15\nPartita: Barcelona vs LDU Quito\nRTG: 8 - 6\n🧾Strategia: Over 0.5 HT\nStats Home: 70\nStats Away: 70\n🥅 Score: 0-0",
+    "messaggio": "⏱Timer: 15\nPartita: Barcelona vs LDU Quito\nRTG: 8 - 6\n🧾Strategia: Over 0.5 HT\nStats Home: 70\nStats Away: 70\n🥅 Score: 0-0\n🔗Link🔗: https://www.bet365.com/match/12345\nCampionato: Champions League\nStart: 2.10 / 3.25 / 3.45\nKickoff: 2.15 / 3.10 / 3.50\nGT: 1.95\nTT: 16.8\nSOD: 2.01\nDB: +18.44\nDB_P: +19.23\nAGV: 66.5",
     "timestamp": "2025-07-25T13:25:08.201318+02:00",
     "task": "prova"
   },
   {
-    "messaggio": "⏱Timer: 25\nPartita: Palermo vs Ascoli\nRTG: 1.4\n🧾Strategia: Goal nel 1° Tempo\nStats Home: 75\nStats Away: 65\n🥅 Score: 1-0",
+    "messaggio": "⏱Timer: 25\nPartita: Palermo vs Ascoli\nRTG: 1.4\n🧾Strategia: Goal nel 1° Tempo\nStats Home: 75\nStats Away: 65\n🥅 Score: 1-0\n🔗Link🔗: https://www.bet365.com/match/67890\nCampionato: Serie B\nStart: 2.10 / 3.25 / 3.45\nKickoff: 2.15 / 3.10 / 3.50\nGT: 1.95\nTT: 16.8\nSOD: 2.01\nDB: +18.44\nDB_P: +19.23\nAGV: 66.5",
     "timestamp": "2025-08-03T11:56:00.000000+02:00",
+    "task": "prova"
+  },
+  {
+    "messaggio": "⏱Timer: 42\nPartita: Juventus vs Inter\nRTG: 2.1\n🧾Strategia: Over 2.5\nStats Home: 80\nStats Away: 85\n🥅 Score: 2-1\n🔗Link🔗: https://www.bet365.com/match/11111\nCampionato: Serie A\nStart: 1.85 / 3.40 / 4.20\nKickoff: 1.90 / 3.35 / 4.15\nGT: 2.15\nTT: 18.2\nSOD: 1.95\nDB: +22.15\nDB_P: +23.45\nAGV: 72.8",
+    "timestamp": "2025-08-03T12:15:30.000000+02:00",
     "task": "prova"
   },
   {
@@ -465,7 +470,7 @@
     "task": null
   },
   {
-    "messaggio": "Ti seguo ��🧨",
+    "messaggio": "Ti seguo ����",
     "timestamp": "2025-07-25T13:59:24.777088+02:00",
     "task": null
   },

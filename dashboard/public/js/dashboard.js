@@ -174,6 +174,13 @@ function parseMatchInfo(messaggio) {
     console.log('DEBUG: Partita trovata:', parsedData.partita);
   }
   
+  // Cerca "Timer: " seguito dal minuto
+  const timerMatch = messaggio.match(/Timer:\s*(\d+)/);
+  if (timerMatch) {
+    parsedData.timer = timerMatch[1].trim();
+    console.log('DEBUG: Timer trovato:', parsedData.timer);
+  }
+  
   // Cerca "Score: " seguito dal punteggio
   const scoreMatch = messaggio.match(/Score:\s*([^\n]+)/);
   if (scoreMatch) {
@@ -270,6 +277,27 @@ function parseMatchInfo(messaggio) {
   if (agvMatch) {
     parsedData.agv = agvMatch[1].trim();
     console.log('DEBUG: AGV trovato:', parsedData.agv);
+  }
+  
+  // Cerca "Stats Home: " seguito dal valore
+  const statsHomeMatch = messaggio.match(/Stats Home:\s*(\d+)/);
+  if (statsHomeMatch) {
+    parsedData.statsHome = statsHomeMatch[1].trim();
+    console.log('DEBUG: Stats Home trovato:', parsedData.statsHome);
+  }
+  
+  // Cerca "Stats Away: " seguito dal valore
+  const statsAwayMatch = messaggio.match(/Stats Away:\s*(\d+)/);
+  if (statsAwayMatch) {
+    parsedData.statsAway = statsAwayMatch[1].trim();
+    console.log('DEBUG: Stats Away trovato:', parsedData.statsAway);
+  }
+  
+  // Cerca "🔗Link🔗: " seguito dal link
+  const linkMatch = messaggio.match(/🔗Link🔗:\s*([^\n]+)/);
+  if (linkMatch) {
+    parsedData.link = linkMatch[1].trim();
+    console.log('DEBUG: Link trovato:', parsedData.link);
   }
   
   // Cerca anche varianti dei nomi dei campi
@@ -371,6 +399,21 @@ function createMessageElement(msg) {
   // Estrai i dati dal messaggio se non sono già presenti
   const parsedData = msg.messaggio !== 'prova' ? parseMatchInfo(msg.messaggio) : {};
   
+  // Aggiungi timer e punteggio se disponibili
+  if (parsedData.timer) {
+    const timerElement = document.createElement('div');
+    timerElement.className = 'timer';
+    timerElement.innerHTML = `⏰ Minuto: ${parsedData.timer}'`;
+    messageDiv.appendChild(timerElement);
+  }
+  
+  if (parsedData.score) {
+    const scoreElement = document.createElement('div');
+    scoreElement.className = 'score';
+    scoreElement.innerHTML = `🥅 Punteggio: ${parsedData.score}`;
+    messageDiv.appendChild(scoreElement);
+  }
+  
   // Strategia
   if (parsedData.strategia || msg.strategia) {
     const strategyDiv = document.createElement('div');
@@ -419,6 +462,14 @@ function createMessageElement(msg) {
     messageDiv.appendChild(statsDiv);
   }
   
+  // Stats Home e Away
+  if (parsedData.statsHome || parsedData.statsAway) {
+    const statsDiv = document.createElement('div');
+    statsDiv.className = 'stats';
+    statsDiv.innerHTML = `📊 Stats: Home ${parsedData.statsHome || 'N/A'} | Away ${parsedData.statsAway || 'N/A'}`;
+    messageDiv.appendChild(statsDiv);
+  }
+  
   // Database stats (DB, DB_P, AGV)
   if (parsedData.db || parsedData.db_p || parsedData.agv || msg.db || msg.db_p || msg.agv) {
     const dbStatsDiv = document.createElement('div');
@@ -429,6 +480,14 @@ function createMessageElement(msg) {
     if (parsedData.agv || msg.agv) dbStats.push(`AGV Tot: ${parsedData.agv || msg.agv}`);
     dbStatsDiv.textContent = `💎 ${dbStats.join(' | ')}`;
     messageDiv.appendChild(dbStatsDiv);
+  }
+  
+  // Link
+  if (parsedData.link) {
+    const linkDiv = document.createElement('div');
+    linkDiv.className = 'link';
+    linkDiv.innerHTML = `<a href="${parsedData.link}" target="_blank" class="match-link">🔗 Vai al Match</a>`;
+    messageDiv.appendChild(linkDiv);
   }
   
   // Indicatori tecnici
