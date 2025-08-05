@@ -5,7 +5,10 @@ from telethon import TelegramClient, events
 from datetime import datetime
 import requests
 import re
-from zoneinfo import ZoneInfo
+try:
+    from zoneinfo import ZoneInfo
+except ImportError:
+    from backports.zoneinfo import ZoneInfo
 
 BASEDIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CONFIG_FILE = os.path.join(BASEDIR, "src/config.json")
@@ -72,7 +75,7 @@ if not config.get("bot_attivo", True):
     log("❌ BOT disattivato da config.json")
     exit()
 
-client = TelegramClient("scripts/sessione", config["api_id"], config["api_hash"])
+client = TelegramClient("sessione", config["api_id"], config["api_hash"])
 
 @client.on(events.NewMessage())
 async def handler(event):
