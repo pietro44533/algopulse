@@ -5,13 +5,13 @@ echo "================"
 
 # Controlla bot
 echo "🤖 Bot Telegram:"
-if [ -f "scripts/bot.pid" ]; then
-    BOT_PID=$(cat scripts/bot.pid)
+if [ -f "bot.pid" ]; then
+    BOT_PID=$(cat bot.pid)
     if ps -p $BOT_PID > /dev/null; then
         echo "   ✅ Attivo (PID: $BOT_PID)"
     else
         echo "   ❌ File PID presente ma processo non trovato"
-        rm -f scripts/bot.pid
+        rm -f bot.pid
     fi
 else
     if pgrep -f "python.*bot.py" > /dev/null; then
@@ -24,8 +24,8 @@ fi
 
 # Controlla dashboard
 echo "🌐 Dashboard:"
-if [ -f "dashboard/dashboard.pid" ]; then
-    DASH_PID=$(cat dashboard/dashboard.pid)
+if [ -f "dashboard.pid" ]; then
+    DASH_PID=$(cat dashboard.pid)
     if ps -p $DASH_PID > /dev/null; then
         echo "   ✅ Attiva (PID: $DASH_PID)"
     else
@@ -36,6 +36,28 @@ else
         echo "   ⚠️  Processo trovato ma senza file PID"
     else
         echo "   ❌ Non attiva"
+    fi
+fi
+
+# Supervisor rimosso - sistema semplificato
+echo "🛡️ Supervisor: ❌ Rimosso dal sistema"
+
+# Controlla monitor persistente
+echo "🔄 Monitor Persistente:"
+if [ -f "monitor.pid" ]; then
+    MONITOR_PID=$(cat monitor.pid)
+    if ps -p $MONITOR_PID > /dev/null; then
+        echo "   ✅ Attivo (PID: $MONITOR_PID)"
+    else
+        echo "   ❌ File PID presente ma processo non trovato"
+        rm -f monitor.pid
+    fi
+else
+    if pgrep -f "monitor_persistente.sh" > /dev/null; then
+        MONITOR_PID=$(pgrep -f "monitor_persistente.sh")
+        echo "   ⚠️  Processo trovato ma senza file PID ($MONITOR_PID)"
+    else
+        echo "   ❌ Non attivo"
     fi
 fi
 

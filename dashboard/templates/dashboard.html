@@ -44,8 +44,275 @@
   <!-- CSS -->
   <link rel="stylesheet" href="/css/dashboard.css?v=16&t={{ range(100000, 999999) | random }}">
 
-  <!-- CSS aggiuntivo per compatibilità -->
+  <!-- CSS per menu a scomparsa -->
   <style>
+    /* Header dashboard */
+    .dashboard-header {
+      background: #1976d2;
+      color: white;
+      padding: 20px;
+      position: relative;
+      height: 80px;
+    }
+
+    .header-content {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    /* Menu a scomparsa */
+    .sidebar-menu {
+      position: fixed;
+      top: 0;
+      left: -280px;
+      width: 280px;
+      height: 100vh;
+      background: white;
+      box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+      z-index: 1000;
+      transition: left 0.3s ease;
+      overflow-y: auto;
+    }
+
+    .sidebar-menu.open {
+      left: 0;
+    }
+
+    .sidebar-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: rgba(0,0,0,0.5);
+      z-index: 999;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .sidebar-backdrop.open {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .sidebar-header {
+      background: #1976d2;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    .sidebar-task-item {
+      width: 250px;
+      height: 80px;
+      margin: 15px auto;
+      border: none;
+      border-radius: 40px;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 600;
+      color: white;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+      text-align: center;
+      padding: 15px 20px;
+      gap: 12px;
+    }
+
+    .sidebar-task-item:nth-child(1) {
+      background: linear-gradient(135deg, #2c3e50, #34495e);
+    }
+
+    .sidebar-task-item:nth-child(2) {
+      background: linear-gradient(135deg, #8e44ad, #9b59b6);
+    }
+
+    .sidebar-task-item:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+    }
+
+    .sidebar-task-item.active {
+      border: 3px solid #4caf50;
+      box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4);
+      transform: scale(1.02);
+    }
+
+    .task-icon {
+      font-size: 20px;
+    }
+
+    .task-name {
+      font-size: 14px;
+      line-height: 1.2;
+      font-weight: 600;
+      flex: 1;
+      text-align: center;
+    }
+
+    .task-ball {
+      font-size: 18px;
+      margin-left: auto;
+    }
+
+    /* Contenuto principale */
+    #tasks-container {
+      padding: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .match-box {
+      background: white;
+      border-radius: 15px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    }
+
+    .match-box .header {
+      font-size: 18px;
+      font-weight: bold;
+      color: #1976d2;
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .message {
+      background: #f8f9fa;
+      border-radius: 10px;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-left: 4px solid #1976d2;
+    }
+
+    .message-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .timestamp {
+      font-size: 12px;
+      color: #666;
+      font-weight: 500;
+    }
+
+    .message-content pre {
+      margin: 0;
+      white-space: pre-wrap;
+      font-family: inherit;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #333;
+    }
+
+    .messages {
+      max-height: 400px;
+      overflow-y: auto;
+    }
+
+    .sidebar-task-item.inactive {
+      background: #fff3e0;
+      border-left: 4px solid #ff9800;
+    }
+
+    .task-status {
+      font-size: 12px;
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-weight: bold;
+    }
+
+    .task-status.active {
+      background: #4caf50;
+      color: white;
+    }
+
+    .task-status.inactive {
+      background: #ff9800;
+      color: white;
+    }
+
+    .sidebar-add-task {
+      padding: 15px 20px;
+      background: #1976d2;
+      color: white;
+      text-align: center;
+      cursor: pointer;
+      font-weight: bold;
+      transition: background 0.2s;
+    }
+
+    .sidebar-add-task:hover {
+      background: #1565c0;
+    }
+
+    .hamburger-menu {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      width: 40px;
+      height: 40px;
+      background: #1976d2;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 3px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+      transition: all 0.2s ease;
+    }
+
+    .hamburger-menu:hover {
+      background: #1565c0;
+      transform: scale(1.05);
+    }
+
+    .hamburger-line {
+      width: 20px;
+      height: 2px;
+      background: white;
+      transition: all 0.3s ease;
+    }
+
+    .hamburger-menu.open .hamburger-line:nth-child(1) {
+      transform: rotate(45deg) translate(5px, 5px);
+    }
+
+    .hamburger-menu.open .hamburger-line:nth-child(2) {
+      opacity: 0;
+    }
+
+    .hamburger-menu.open .hamburger-line:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -6px);
+    }
+
+    /* Contenuto principale */
+    .main-content {
+      margin-left: 0;
+      transition: margin-left 0.3s ease;
+    }
+
+    .main-content.menu-open {
+      margin-left: 280px;
+    }
+
+    /* Stili esistenti mantenuti */
     .strategia, .campionato {
       margin-bottom: 4px;
     }
@@ -115,23 +382,138 @@
 
     .add-task-btn {
       display: block;
-      margin-bottom: 18px; /* o la distanza che preferisci */
+      margin-bottom: 18px;
+    }
+
+    /* Mobile Styles */
+    @media (max-width: 768px) {
+      body {
+        padding-top: 60px; /* Spazio per la fotocamera */
+      }
+      
+      .hamburger-menu {
+        top: 80px; /* Abbassato per mobile */
+        left: 20px;
+        width: 45px;
+        height: 45px;
+      }
+      
+      .hamburger-line {
+        width: 22px;
+        height: 3px;
+      }
+      
+      .sidebar-menu {
+        width: 100vw;
+        left: -100vw;
+        top: 0;
+        padding-top: 60px; /* Spazio per la fotocamera */
+      }
+      
+      .sidebar-header {
+        padding: 15px 20px;
+        font-size: 16px;
+      }
+      
+      .sidebar-task-item {
+        width: 280px;
+        height: 70px;
+        margin: 12px auto;
+        font-size: 13px;
+      }
+      
+      .task-icon, .task-ball {
+        font-size: 16px;
+      }
+      
+      .task-name {
+        font-size: 13px;
+      }
+    }
+
+    /* Desktop Styles */
+    @media (min-width: 769px) {
+      body {
+        padding-top: 20px;
+      }
+      
+      .hamburger-menu {
+        top: 40px; /* Stessa posizione di mobile - centro headline */
+        left: 20px;
+        width: 40px;
+        height: 40px;
+      }
+      
+      .hamburger-line {
+        width: 20px;
+        height: 2px;
+      }
+      
+      .sidebar-menu {
+        width: 320px;
+        left: -320px;
+        top: 0;
+        padding-top: 60px; /* Stesso padding di mobile */
+      }
+      
+      .sidebar-header {
+        padding: 20px;
+        font-size: 18px;
+      }
+      
+      .sidebar-task-item {
+        width: 250px;
+        height: 80px;
+        margin: 15px auto;
+        font-size: 14px;
+      }
+      
+      .task-icon, .task-ball {
+        font-size: 18px;
+      }
+      
+      .task-name {
+        font-size: 14px;
+      }
     }
   </style>
 </head>
 <body>
-  <!-- 🔘 Task interattivi con campanella -->
-  <div class="task-bar">
-    {% for regola in regole %}
-      <span class="pill" data-filter="{{ regola.filter|default('')|lower|replace(' ', '-') }}" data-filter-raw="{{ regola.filter }}">
-        {{ regola.filter or 'Task' }}
-        <span class="bell" data-task="{{ regola.filter|default('')|lower|replace(' ', '-') }}">🔔</span>
-      </span>
-    {% endfor %}
+    <!-- Header -->
+  <header class="dashboard-header">
+    <div class="header-content">
+    </div>
+  </header>
+
+  <!-- Hamburger menu -->
+  <button class="hamburger-menu" id="hamburger-menu">
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+    <span class="hamburger-line"></span>
+  </button>
+
+  <!-- Menu a scomparsa a sinistra -->
+  <div class="sidebar-menu" id="sidebar-menu">
+    <div class="sidebar-header">
+      <h2>🎯 STRATEGIE</h2>
+      <button class="close-menu" id="close-menu">✕</button>
+    </div>
+    <div class="task-list">
+      {% for regola in regole %}
+        <div class="sidebar-task-item" data-filter="{{ regola.filter|default('')|lower|replace(' ', '-') }}" data-filter-raw="{{ regola.filter }}">
+          <div class="task-icon">⚽</div>
+          <div class="task-name">{{ regola.filter or 'Task' }}</div>
+          <div class="task-ball">⚽</div>
+        </div>
+      {% endfor %}
+
+    </div>
   </div>
 
-  <!-- 🟢 Stato Telegram -->
-  <div class="status">📨 Telegram: OK</div>
+  <!-- Overlay per chiudere il menu -->
+  <div class="sidebar-overlay" id="sidebar-overlay"></div>
+
+
 
   <!-- Container per le task -->
   <div id="tasks-container">
@@ -153,91 +535,159 @@
   </div>
 
   <script>
-    // 🔁 Filtro match-box al clic sulla pillola
-    document.querySelectorAll('.pill').forEach(pill => {
-      pill.addEventListener('click', () => {
-        const filtro = pill.getAttribute('data-filter');
+    // Menu a scomparsa
+    const hamburgerMenu = document.getElementById('hamburger-menu');
+    const sidebarMenu = document.getElementById('sidebar-menu');
+    const sidebarOverlay = document.getElementById('sidebar-overlay');
+    const closeMenu = document.getElementById('close-menu');
+    const taskItems = document.querySelectorAll('.sidebar-task-item');
 
-        document.querySelectorAll('.match-box').forEach(box => {
-          box.style.display = box.getAttribute('data-task') === filtro ? 'block' : 'none';
-        });
-
-        document.querySelectorAll('.pill').forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-      });
+    // Apri menu
+    hamburgerMenu.addEventListener('click', () => {
+      console.log('Hamburger menu clicked!');
+      sidebarMenu.classList.add('open');
+      sidebarOverlay.classList.add('open');
+      hamburgerMenu.classList.add('open');
     });
 
-    // 🔔 Toggle notifiche al clic sulla campanella
-    document.querySelectorAll('.bell').forEach(bell => {
-      bell.addEventListener('click', (e) => {
-        e.stopPropagation(); // ⚠️ evita attivazione filtro
+    // Chiudi menu
+    function closeSidebarMenu() {
+      sidebarMenu.classList.remove('open');
+      sidebarOverlay.classList.remove('open');
+      hamburgerMenu.classList.remove('open');
+    }
 
-        bell.classList.toggle('off');
-        bell.textContent = bell.classList.contains('off') ? '🔕' : '🔔';
+    closeMenu.addEventListener('click', closeSidebarMenu);
+    sidebarOverlay.addEventListener('click', closeSidebarMenu);
 
-        const task = bell.getAttribute('data-task');
-        const stato = bell.classList.contains('off') ? 'DISATTIVATE' : 'ATTIVE';
-        console.log(`🔔 Notifiche per ${task}: ${stato}`);
-      });
-    });
-
-    // Event delegation per la rimozione delle task
-    document.querySelector('.task-bar').addEventListener('click', function(e) {
-      if (e.target.classList.contains('remove-task-btn')) {
-        e.stopPropagation();
-        const pill = e.target.closest('.pill');
-        let filter = pill.getAttribute('data-filter-raw');
-        if (window.confirm('Sei sicuro di voler eliminare questa task?')) {
-          fetch('/api/rimuovi_task', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ filter: filter })
-          })
-          .then(res => res.json())
-          .then(data => {
-            if (data.ok) {
-              document.querySelectorAll('.pill[data-filter-raw="' + filter + '"]').forEach(p => p.remove());
-            } else {
-              alert('Errore: ' + (data.error || 'Impossibile rimuovere la task'));
-            }
-          })
-          .catch(() => {
-            alert('Errore di rete nella rimozione della task');
+    // Selezione task dal menu
+    taskItems.forEach(item => {
+      if (!item.classList.contains('add-task')) {
+        item.addEventListener('click', () => {
+          const taskFilter = item.getAttribute('data-filter');
+          
+          // Nascondi tutte le task
+          document.querySelectorAll('.match-box').forEach(box => {
+            box.style.display = 'none';
           });
-        }
+          
+          // Mostra la task selezionata
+          const targetBox = document.getElementById(taskFilter + '-box');
+          if (targetBox) {
+            targetBox.style.display = 'block';
+          }
+          
+          // Aggiorna stato attivo nel menu
+          taskItems.forEach(t => t.classList.remove('active'));
+          item.classList.add('active');
+          
+          // Chiudi menu su mobile
+          if (window.innerWidth <= 768) {
+            closeSidebarMenu();
+          }
+        });
       }
     });
 
-    function addTaskPrompt() {
-      const name = prompt("Nome della nuova task/canale:");
-      if (!name) return;
 
-      fetch('/api/aggiungi_task', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filter: name })
-      })
-      .then(res => res.json())
-      .then(data => {
-        console.log('DEBUG risposta aggiungi_task:', data);
-        if (data.ok) {
-          window.location.reload();
-        } else {
-          alert('Errore: ' + (data.error || 'Impossibile aggiungere la task'));
-        }
-      });
+
+    // Swipe per chiudere menu su mobile
+    let startX = 0;
+    let currentX = 0;
+
+    sidebarMenu.addEventListener('touchstart', (e) => {
+      startX = e.touches[0].clientX;
+    });
+
+    sidebarMenu.addEventListener('touchmove', (e) => {
+      currentX = e.touches[0].clientX;
+    });
+
+    sidebarMenu.addEventListener('touchend', () => {
+      const diffX = startX - currentX;
+      if (diffX > 50) { // Swipe a sinistra
+        closeSidebarMenu();
+      }
+    });
+
+    // Chiudi menu con ESC
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') {
+        closeSidebarMenu();
+      }
+    });
+
+    // Funzione per caricare i messaggi
+    async function loadMessages() {
+      try {
+        const response = await fetch('/api/instradatore_task');
+        const messages = await response.json();
+        
+        // Raggruppa messaggi per task
+        const messagesByTask = {};
+        messages.forEach(msg => {
+          const task = msg.task || 'unknown';
+          if (!messagesByTask[task]) {
+            messagesByTask[task] = [];
+          }
+          messagesByTask[task].push(msg);
+        });
+        
+        // Aggiorna ogni box con i suoi messaggi
+        Object.keys(messagesByTask).forEach(task => {
+          const boxId = task.toLowerCase().replace(/\s+/g, '-') + '-box';
+          const box = document.getElementById(boxId);
+          if (box) {
+            const messagesContainer = box.querySelector('.messages');
+            messagesContainer.innerHTML = '';
+            
+            messagesByTask[task].forEach(msg => {
+              const messageDiv = document.createElement('div');
+              messageDiv.className = 'message';
+              messageDiv.innerHTML = `
+                <div class="message-header">
+                  <span class="timestamp">${formatTimestamp(msg.timestamp)}</span>
+                </div>
+                <div class="message-content">
+                  <pre>${msg.messaggio}</pre>
+                </div>
+              `;
+              messagesContainer.appendChild(messageDiv);
+            });
+          }
+        });
+      } catch (error) {
+        console.error('Errore nel caricamento messaggi:', error);
+      }
     }
 
-    // --- MESSAGGI LIVE PER TASK ---
-    // Funzione renderLiveMessage rimossa - tutto gestito da dashboard.js esterno
-    // function renderLiveMessage(msg) { ... }
+    // Funzione per formattare il timestamp
+    function formatTimestamp(timestamp) {
+      if (!timestamp) return '';
+      try {
+        const date = new Date(timestamp);
+        return date.toLocaleString('it-IT', {
+          day: '2-digit',
+          month: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      } catch (e) {
+        return timestamp;
+      }
+    }
 
-    // Funzione fetchLiveMessages rimossa - tutto gestito da dashboard.js esterno
-    // function fetchLiveMessages() { ... }
-    // JavaScript inline rimosso - tutto gestito da dashboard.js esterno
-    // setTimeout(() => {
-    //   setInterval(fetchLiveMessages, 5000);
-    // }, 3000);
+    // Carica messaggi all'avvio e ogni 5 secondi
+    document.addEventListener('DOMContentLoaded', () => {
+      loadMessages();
+      setInterval(loadMessages, 5000);
+      
+      // Seleziona automaticamente la prima task
+      const firstTaskItem = document.querySelector('.sidebar-task-item');
+      if (firstTaskItem) {
+        firstTaskItem.click();
+      }
+    });
   </script>
 
   <!-- JavaScript -->
